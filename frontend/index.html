@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FTE QA Intelligence Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0A0F1A;--panel:#0F1729;--card:#131E30;--card2:#182235;
+  --border:#1E2D45;--border2:#243350;
+  --blue:#3B7EF6;--blue-dim:rgba(59,126,246,0.12);
+  --teal:#0FB5AE;--green:#22C55E;--green-dim:rgba(34,197,94,0.12);
+  --amber:#F59E0B;--amber-dim:rgba(245,158,11,0.12);
+  --red:#EF4444;--red-dim:rgba(239,68,68,0.12);
+  --text:#CBD5E1;--text2:#94A3B8;--text3:#64748B;--white:#F1F5F9;
+  --mono:'IBM Plex Mono',monospace;
+}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:13.5px;line-height:1.5;min-height:100vh;display:flex;flex-direction:column}
+.topbar{background:var(--panel);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:50px;flex-shrink:0;position:sticky;top:0;z-index:100}
+.logo{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--white)}.logo span{color:var(--blue)}
+.topbar-mid{display:flex;align-items:center;gap:8px}
+.topbar-div{width:1px;height:18px;background:var(--border2);margin:0 8px}
+.tagline{font-size:11px;color:var(--text3);font-family:var(--mono)}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.live-badge{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--green);font-family:var(--mono)}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+.layout{display:flex;flex:1;overflow:hidden;height:calc(100vh - 50px)}
+.sidebar{width:188px;background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;padding:14px 0}
+.sb-sec{padding:0 10px;margin-bottom:20px}
+.sb-lbl{font-size:10px;color:var(--text3);letter-spacing:0.12em;text-transform:uppercase;font-family:var(--mono);padding:0 8px;margin-bottom:5px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:6px;cursor:pointer;color:var(--text2);font-size:12.5px;transition:all 0.15s;border:1px solid transparent;margin-bottom:1px;user-select:none}
+.nav-item:hover{background:var(--card);color:var(--text)}
+.nav-item.active{background:var(--blue-dim);color:var(--blue);border-color:rgba(59,126,246,0.2)}
+.nav-icon{font-size:14px;width:16px;text-align:center;flex-shrink:0}
+.nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:600;border-radius:10px;padding:1px 6px;font-family:var(--mono)}
+.sb-bottom{margin-top:auto;padding:10px;border-top:1px solid var(--border);font-size:10.5px;color:var(--text3);font-family:var(--mono);text-align:center;line-height:1.7}
+.main{flex:1;overflow-y:auto;background:var(--bg)}
+.page{display:none;padding:20px}.page.active{display:block}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px}
+.page-title{font-size:19px;font-weight:600;color:var(--white);margin-bottom:2px}
+.page-sub{font-size:11.5px;color:var(--text3);font-family:var(--mono)}
+.page-actions{display:flex;gap:7px}
+.btn{padding:6px 13px;border-radius:6px;font-size:12px;font-family:'IBM Plex Sans',sans-serif;cursor:pointer;border:none;transition:all 0.15s;font-weight:500}
+.btn-primary{background:var(--blue);color:#fff}.btn-primary:hover{background:#2D6FE8}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border2)}.btn-ghost:hover{background:var(--card);color:var(--text)}
+.btn-danger{background:var(--red-dim);color:var(--red);border:1px solid rgba(239,68,68,0.2)}
+.btn-sm{padding:3px 9px;font-size:11px}
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:9px;padding:14px}
+.kpi-label{font-size:10px;color:var(--text3);letter-spacing:0.06em;text-transform:uppercase;font-family:var(--mono);margin-bottom:7px}
+.kpi-val{font-size:26px;font-weight:600;line-height:1;margin-bottom:3px;color:var(--white)}
+.kpi-sub{font-size:10.5px;color:var(--text3)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px}
+.g64{display:grid;grid-template-columns:62fr 38fr;gap:14px;margin-bottom:14px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:9px;padding:16px}
+.card-title{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.08em;font-family:var(--mono);margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+.ctag{font-size:10px;padding:2px 7px;border-radius:9px;font-weight:400;text-transform:none;letter-spacing:0}
+.tier{display:inline-flex;align-items:center;padding:2px 8px;border-radius:10px;font-size:10.5px;font-weight:600;font-family:var(--mono)}
+.tc{background:var(--red-dim);color:var(--red)}.ta{background:var(--amber-dim);color:var(--amber)}
+.ts{background:var(--blue-dim);color:var(--blue)}.te{background:var(--green-dim);color:var(--green)}
+.tu{background:rgba(100,116,139,0.1);color:var(--text3)}
+.sbar{height:5px;background:var(--border);border-radius:3px;overflow:hidden}
+.sf{height:100%;border-radius:3px}
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{text-align:left;padding:7px 10px;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;font-family:var(--mono);font-weight:500;border-bottom:1px solid var(--border)}
+.tbl td{padding:9px 10px;font-size:12px;border-bottom:1px solid rgba(30,45,69,0.5);color:var(--text)}
+.tbl tr:last-child td{border-bottom:none}.tbl tr:hover td{background:rgba(255,255,255,0.015)}
+.rrow{display:flex;align-items:center;padding:9px 0;border-bottom:1px solid rgba(30,45,69,0.5);gap:10px}.rrow:last-child{border-bottom:none}
+.rname{width:90px;font-size:12.5px;color:var(--white);font-weight:500}
+.rbar-w{flex:1;display:flex;align-items:center;gap:7px}
+.rbar{flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden}
+.rpct{font-family:var(--mono);font-size:11.5px;min-width:38px;text-align:right}
+.rcount{font-size:10.5px;color:var(--text3);min-width:60px;text-align:right}
+.donut-wrap{display:flex;align-items:center;gap:18px}
+.donut{width:90px;height:90px;border-radius:50%;position:relative;flex-shrink:0}
+.donut::after{content:'';position:absolute;inset:20px;background:var(--card);border-radius:50%}
+.dleg{display:flex;flex-direction:column;gap:6px}
+.dleg-item{display:flex;align-items:center;gap:7px;font-size:11.5px}
+.dleg-dot{width:7px;height:7px;border-radius:2px;flex-shrink:0}
+.dleg-val{margin-left:auto;font-family:var(--mono);font-size:11.5px;color:var(--text2)}
+.alert-item{display:flex;align-items:flex-start;gap:10px;padding:11px;border-radius:7px;border:1px solid transparent;margin-bottom:7px;transition:all 0.15s}
+.alert-item.unread{border-color:var(--border);background:var(--card)}
+.alert-item:hover{background:var(--card2)}
+.a-sev{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.a-body{flex:1}
+.a-name{font-size:12.5px;font-weight:500;color:var(--white);margin-bottom:2px}
+.a-detail{font-size:11.5px;color:var(--text2);margin-bottom:3px}
+.a-meta{font-size:10.5px;color:var(--text3);font-family:var(--mono)}
+.a-ack{font-size:11px;padding:3px 9px;border-radius:5px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer}
+.a-ack:hover{background:var(--card2);color:var(--white)}
+.chat-messages{flex:1;overflow-y:auto;padding:4px 0;display:flex;flex-direction:column;gap:14px;min-height:0}
+.chat-msg{display:flex;gap:9px}
+.chat-av{width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;margin-top:2px}
+.chat-content{max-width:85%}
+.chat-rlbl{font-size:10px;color:var(--text3);font-family:var(--mono);margin-bottom:4px}
+.chat-bubble{padding:10px 14px;border-radius:9px;font-size:13px;line-height:1.6}
+.chat-bubble.user{background:var(--blue-dim);border:1px solid rgba(59,126,246,0.2);color:#CBD5E1}
+.chat-bubble.ai{background:var(--card);border:1px solid var(--border)}
+.chat-bubble strong{color:var(--white)}
+.chat-input-wrap{margin-top:12px;background:var(--card);border:1px solid var(--border2);border-radius:9px;display:flex;align-items:flex-end;gap:9px;padding:9px 11px}
+.chat-input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:13px;resize:none;min-height:20px;max-height:80px}
+.chat-input::placeholder{color:var(--text3)}
+.chat-send{background:var(--blue);border:none;border-radius:6px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;font-size:15px;flex-shrink:0}
+.chat-send:hover{background:#2D6FE8}
+.quick-qs{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}
+.quick-q{padding:4px 11px;border-radius:18px;background:var(--card);border:1px solid var(--border);color:var(--text2);font-size:11.5px;cursor:pointer;transition:all 0.15s}
+.quick-q:hover{background:var(--blue-dim);border-color:rgba(59,126,246,0.3);color:var(--blue)}
+.upload-zone{border:2px dashed var(--border2);border-radius:10px;padding:40px;text-align:center;transition:all 0.2s;cursor:pointer;background:var(--card);margin-bottom:16px}
+.upload-zone:hover,.upload-zone.drag-over{border-color:var(--blue);background:var(--blue-dim)}
+.upload-icon{font-size:36px;margin-bottom:10px}
+.upload-title{font-size:15px;font-weight:600;color:var(--white);margin-bottom:5px}
+.upload-sub{font-size:12.5px;color:var(--text3);margin-bottom:16px}
+#fileInput{display:none}
+.progress-step{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:7px;font-size:12.5px;margin-bottom:6px}
+.step-icon{font-size:14px;width:18px;text-align:center;flex-shrink:0}
+.step-label{flex:1}
+.step-s{font-size:10.5px;font-family:var(--mono);color:var(--text3)}
+.step-s.done{color:var(--green)}.step-s.running{color:var(--blue);animation:blink 1s infinite}
+.ingest-log{background:#060B14;border:1px solid var(--border);border-radius:7px;padding:12px;font-family:var(--mono);font-size:11px;line-height:1.7;max-height:160px;overflow-y:auto;color:var(--text2);display:none;margin-top:12px}
+.ingest-log.active{display:block}
+.ll{display:block}.ll.success{color:var(--green)}.ll.warn{color:var(--amber)}.ll.info{color:var(--blue)}.ll.dim{color:var(--text3)}
+.res-grid{display:none;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+.res-grid.active{display:grid}
+.res-card{background:var(--card);border:1px solid var(--border);border-radius:7px;padding:12px;text-align:center}
+.res-num{font-size:26px;font-weight:600;line-height:1;margin-bottom:3px}
+.res-lbl{font-size:10.5px;color:var(--text3);font-family:var(--mono)}
+.rule-row{display:flex;align-items:flex-start;gap:9px;padding:8px 0;border-bottom:1px solid rgba(30,45,69,0.5);font-size:12.5px}
+.rule-row:last-child{border-bottom:none}
+.ri{font-size:13px;flex-shrink:0;margin-top:1px}
+.rt strong{color:var(--white)}
+.rt code{font-family:var(--mono);font-size:11px;background:var(--border);padding:1px 5px;border-radius:3px;color:var(--teal)}
+.search-input{background:var(--card);border:1px solid var(--border2);border-radius:6px;padding:6px 11px;color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:12px;outline:none;width:200px}
+.filter-sel{background:var(--card);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:12px;padding:6px 8px;outline:none;cursor:pointer}
+.bc{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1}
+.bf{width:100%;border-radius:2px 2px 0 0}
+.bl{font-size:9px;color:var(--text3);font-family:var(--mono);text-align:center;line-height:1.3}
+.loading{display:flex;align-items:center;justify-content:center;padding:40px;color:var(--text3);font-family:var(--mono);font-size:12px}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.fadein{animation:fadeIn 0.3s ease forwards}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-mid">
+    <div class="logo">FTE <span>QA</span> INTELLIGENCE</div>
+    <div class="topbar-div"></div>
+    <div class="tagline">Factory Technical Evaluation System</div>
+  </div>
+  <div class="topbar-right">
+    <div class="live-badge"><div class="live-dot"></div> LIVE</div>
+    <div style="font-size:11px;color:var(--text3);font-family:var(--mono)" id="lastSync">Loading...</div>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sb-sec">
+      <div class="sb-lbl">Main</div>
+      <div class="nav-item active" onclick="showPage('overview',this)"><div class="nav-icon">⬜</div> Overview</div>
+      <div class="nav-item" onclick="showPage('analytics',this)"><div class="nav-icon">📊</div> Analytics</div>
+      <div class="nav-item" onclick="showPage('chat',this)"><div class="nav-icon">🤖</div> AI Chat</div>
+      <div class="nav-item" onclick="showPage('alerts',this)"><div class="nav-icon">🔔</div> Alerts<div class="nav-badge" id="alertBadge">...</div></div>
+    </div>
+    <div class="sb-sec">
+      <div class="sb-lbl">Data</div>
+      <div class="nav-item" onclick="showPage('upload',this)"><div class="nav-icon">📤</div> Upload Data</div>
+      <div class="nav-item" onclick="showPage('vendors',this)"><div class="nav-icon">🏭</div> Vendor List</div>
+    </div>
+    <div class="sb-bottom" id="sbSync">—</div>
+  </div>
+
+  <div class="main">
+
+    <!-- OVERVIEW -->
+    <div class="page active" id="page-overview">
+      <div class="page-header">
+        <div><div class="page-title">Overview</div><div class="page-sub" id="overviewSub">Loading data...</div></div>
+        <div class="page-actions"><button class="btn btn-primary" onclick="showPage('upload',document.querySelectorAll('.nav-item')[5])">Upload New Data</button></div>
+      </div>
+      <div class="kpi-row" id="kpiRow"><div class="loading" style="grid-column:1/-1">Loading...</div></div>
+      <div class="g64" id="regionSection"><div class="loading">Loading regions...</div></div>
+      <div class="card" id="prioritySection"><div class="loading">Loading vendors...</div></div>
+    </div>
+
+    <!-- ANALYTICS -->
+    <div class="page" id="page-analytics">
+      <div class="page-header"><div><div class="page-title">Visual Analytics</div><div class="page-sub">Real data from your database</div></div></div>
+      <div class="g2" id="analyticsTop"><div class="loading" style="grid-column:1/-1">Loading...</div></div>
+      <div class="g2" id="analyticsBottom"></div>
+      <div class="card" id="trendSection"></div>
+    </div>
+
+    <!-- AI CHAT -->
+    <div class="page" id="page-chat">
+      <div class="page-header"><div><div class="page-title">AI Chat</div><div class="page-sub">Ask anything about your real audit data · Powered by Gemini AI</div></div></div>
+      <div class="quick-qs">
+        <div class="quick-q" onclick="askQ(this.textContent)">Which vendors are below 60%?</div>
+        <div class="quick-q" onclick="askQ(this.textContent)">Show me all CAP vendors</div>
+        <div class="quick-q" onclick="askQ(this.textContent)">Who is overdue for re-audit?</div>
+        <div class="quick-q" onclick="askQ(this.textContent)">Which region scores worst?</div>
+        <div class="quick-q" onclick="askQ(this.textContent)">Which category scores worst?</div>
+        <div class="quick-q" onclick="askQ(this.textContent)">Show me AI recommended next audit dates</div>
+      </div>
+      <div class="card" style="display:flex;flex-direction:column;height:calc(100vh - 260px)">
+        <div class="chat-messages" id="chatMsgs">
+          <div class="chat-msg">
+            <div class="chat-av" style="background:rgba(13,148,136,0.2);color:var(--teal)">AI</div>
+            <div class="chat-content">
+              <div class="chat-rlbl">GEMINI · FTE QA ASSISTANT</div>
+              <div class="chat-bubble ai">Hello! I'm connected to your live FTE database. Ask me anything about your vendors, scores, audit dates, risk tiers, or CAP status — I'm reading real data.</div>
+            </div>
+          </div>
+        </div>
+        <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:auto">
+          <div class="chat-input-wrap">
+            <textarea class="chat-input" id="chatInput" placeholder="Ask anything about your audit data..." rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}"></textarea>
+            <button class="chat-send" onclick="sendChat()">↑</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ALERTS -->
+    <div class="page" id="page-alerts">
+      <div class="page-header">
+        <div><div class="page-title">Alerts & Notifications</div><div class="page-sub" id="alertsSub">Loading...</div></div>
+        <div class="page-actions"><button class="btn btn-ghost" onclick="ackAll()">Acknowledge All</button></div>
+      </div>
+      <div class="g2">
+        <div id="alertsList"><div class="loading">Loading alerts...</div></div>
+        <div>
+          <div style="font-size:10px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Resolved</div>
+          <div id="resolvedList"><div class="loading">Loading...</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- UPLOAD -->
+    <div class="page" id="page-upload">
+      <div class="page-header"><div><div class="page-title">Upload Updated Data</div><div class="page-sub">Drop your updated FTE Excel — database updates automatically</div></div></div>
+      <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handleDrop(event)">
+        <div class="upload-icon">📤</div>
+        <div class="upload-title">Drop your Excel file here</div>
+        <div class="upload-sub">Accepts .xlsx · Same format as FTE_Data.xlsx</div>
+        <div style="display:flex;justify-content:center"><button class="btn btn-primary" onclick="event.stopPropagation();document.getElementById('fileInput').click()">Browse File</button></div>
+        <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFileSelect(this)">
+      </div>
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-title">What happens when you upload</div>
+        <div class="rule-row"><div class="ri">🧹</div><div class="rt"><strong>Normalize:</strong> Strips spaces, fixes regions, converts scores from decimal to %</div></div>
+        <div class="rule-row"><div class="ri">🔍</div><div class="rt"><strong>Deduplicate:</strong> Vendor Code + Address (or Name + Address). Same record = skip. Updated score = update.</div></div>
+        <div class="rule-row"><div class="ri">⚡</div><div class="rt"><strong>Risk recompute:</strong> All vendor scores, tiers, and AI audit predictions recalculate</div></div>
+        <div class="rule-row"><div class="ri">🔔</div><div class="rt"><strong>Alerts:</strong> New alerts fire automatically if any vendor drops tier or becomes overdue</div></div>
+        <div class="rule-row"><div class="ri">🤖</div><div class="rt"><strong>AI Audit Planning:</strong> Gemini predicts next audit date for every vendor based on score, trend, tier and CAP history</div></div>
+      </div>
+      <div id="uploadProgress" style="display:none">
+        <div style="font-size:13px;font-weight:500;color:var(--white);margin-bottom:12px">Processing: <span id="upFilename" style="color:var(--blue)"></span></div>
+        <div id="progSteps"></div>
+        <div class="ingest-log" id="ingestLog"></div>
+        <div class="res-grid" id="resultGrid">
+          <div class="res-card"><div class="res-num" style="color:var(--blue)" id="rTotal">—</div><div class="res-lbl">Rows Read</div></div>
+          <div class="res-card"><div class="res-num" style="color:var(--green)" id="rNew">—</div><div class="res-lbl">New Records</div></div>
+          <div class="res-card"><div class="res-num" style="color:var(--amber)" id="rUp">—</div><div class="res-lbl">Updated</div></div>
+          <div class="res-card"><div class="res-num" style="color:var(--text3)" id="rSkip">—</div><div class="res-lbl">Skipped</div></div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:14px">
+        <div class="card-title">Ingestion History</div>
+        <div id="ingestHistory"><div class="loading">Loading...</div></div>
+      </div>
+    </div>
+
+    <!-- VENDORS -->
+    <div class="page" id="page-vendors">
+      <div class="page-header">
+        <div><div class="page-title">Vendor List</div><div class="page-sub" id="vendorSub">Loading...</div></div>
+        <div class="page-actions" style="flex-wrap:wrap;gap:6px">
+          <input class="search-input" placeholder="Search vendor or address..." oninput="searchVendors(this.value)">
+          <select class="filter-sel" onchange="filterByRegion(this.value)"><option value="">All Regions</option></select>
+          <select class="filter-sel" onchange="filterByTier(this.value)"><option value="">All Tiers</option><option>CRITICAL</option><option>AT-RISK</option><option>STABLE</option><option>EXCELLENT</option></select>
+          <select class="filter-sel" onchange="filterByCategory(this.value)"><option value="">All Categories</option><option>Apparel</option><option>Footwear</option><option>Accessories</option></select>
+        </div>
+      </div>
+      <div class="card">
+        <table class="tbl">
+          <thead><tr><th>Vendor</th><th>Code</th><th>Region</th><th>Location</th><th>Category</th><th>Score</th><th>Tier</th><th>Alert</th><th>Status</th><th>AI Next Audit</th></tr></thead>
+          <tbody id="vtbody"><tr><td colspan="10" class="loading">Loading...</td></tr></tbody>
+        </table>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:12px;color:var(--text3)">
+          <span id="vendorPagination"></span>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-ghost btn-sm" onclick="prevPage()">← Prev</button>
+            <button class="btn btn-ghost btn-sm" onclick="nextPage()">Next →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const API = window.location.hostname === 'localhost' ? 'http://localhost:8000' : '';
+
+// State
+let chatHistory = [];
+let vendorFilters = {search:'', region:'', tier:'', category:''};
+let vendorOffset = 0;
+const VENDOR_LIMIT = 50;
+
+// ── UTILS ────────────────────────────────────────────────────────────────────
+function tierClass(t){return{CRITICAL:'tc',AT_RISK:'ta','AT-RISK':'ta',STABLE:'ts',EXCELLENT:'te'}[t]||'tu'}
+function scoreColor(s){return s>=80?'var(--green)':s>=65?'var(--blue)':s>=50?'var(--amber)':'var(--red)'}
+function severityColor(s){return{CRITICAL:'var(--red)',HIGH:'var(--red)',MEDIUM:'var(--amber)',LOW:'var(--blue)'}[s]||'var(--text3)'}
+function timeAgo(ts){
+  if(!ts) return '—';
+  const d=new Date(ts), now=new Date();
+  const diff=Math.floor((now-d)/60000);
+  if(diff<60) return diff+'m ago';
+  if(diff<1440) return Math.floor(diff/60)+'h ago';
+  return Math.floor(diff/1440)+'d ago';
+}
+
+function showPage(id, el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(el) el.classList.add('active');
+  if(id==='vendors') loadVendors();
+  if(id==='alerts') loadAlerts();
+  if(id==='analytics') loadAnalytics();
+  if(id==='upload') loadIngestHistory();
+}
+
+// ── OVERVIEW ─────────────────────────────────────────────────────────────────
+async function loadOverview(){
+  const [ov, regions] = await Promise.all([
+    fetch(API+'/api/overview').then(r=>r.json()),
+    fetch(API+'/api/analytics/regions').then(r=>r.json())
+  ]);
+
+  // KPIs
+  document.getElementById('kpiRow').innerHTML = `
+    <div class="kpi"><div class="kpi-label">Avg FTE Score</div><div class="kpi-val" style="color:var(--blue)">${ov.avg_score}%</div><div class="kpi-sub">Across ${ov.total_vendors} vendors</div></div>
+    <div class="kpi"><div class="kpi-label">Total Vendors</div><div class="kpi-val">${ov.total_vendors}</div><div class="kpi-sub">${ov.vendors_with_code} have vendor codes</div></div>
+    <div class="kpi"><div class="kpi-label">Pending / Due</div><div class="kpi-val" style="color:var(--amber)">${ov.overdue}</div><div class="kpi-sub">Overdue for re-audit</div></div>
+    <div class="kpi"><div class="kpi-label">Approved</div><div class="kpi-val" style="color:var(--green)">${ov.approved}</div><div class="kpi-sub">${ov.yet_to_audit} yet to audit</div></div>
+    <div class="kpi"><div class="kpi-label">Rejected</div><div class="kpi-val" style="color:var(--red)">${ov.rejected}</div><div class="kpi-sub">${ov.unacked_alerts} active alerts</div></div>
+  `;
+
+  document.getElementById('alertBadge').textContent = ov.unacked_alerts || '0';
+  document.getElementById('overviewSub').textContent = `${ov.total_vendors} vendors · ${Object.values(ov.tiers).reduce((a,b)=>a+b,0)} risk scores computed`;
+  document.getElementById('lastSync').textContent = 'Updated ' + new Date().toLocaleTimeString();
+  document.getElementById('sbSync').innerHTML = 'FTE QA Dashboard<br>Live Data';
+
+  // Regions
+  const tierData = ov.tiers || {};
+  const total = Object.values(tierData).reduce((a,b)=>a+b,0)||1;
+  const excellent = tierData.EXCELLENT||0, stable=tierData.STABLE||0, atRisk=tierData['AT-RISK']||0, critical=tierData.CRITICAL||0;
+  const eDeg=(excellent/total)*360, sDeg=(stable/total)*360, aDeg=(atRisk/total)*360, cDeg=(critical/total)*360;
+  const donutGrad = `conic-gradient(var(--green) 0deg ${eDeg}deg, var(--blue) ${eDeg}deg ${eDeg+sDeg}deg, var(--amber) ${eDeg+sDeg}deg ${eDeg+sDeg+aDeg}deg, var(--red) ${eDeg+sDeg+aDeg}deg 360deg)`;
+
+  const regHtml = regions.map(r=>{
+    const sc = r.avg_score||0;
+    const col = scoreColor(sc);
+    const tier = sc>=80?'te':sc>=65?'ts':sc>=50?'ta':'tc';
+    const tierTxt = sc>=80?'EXCELLENT':sc>=65?'STABLE':sc>=50?'AT-RISK':'CRITICAL';
+    return `<div class="rrow">
+      <div class="rname" style="${sc<50?'color:var(--red)':''}">${sc<50?'⚠ ':''} ${r.region}</div>
+      <div class="rbar-w"><div class="rbar"><div style="width:${sc}%;height:100%;background:${col};border-radius:3px"></div></div><div class="rpct" style="color:${col}">${sc}%</div></div>
+      <span class="tier ${tier}">${tierTxt}</span>
+      <div class="rcount">${r.vendor_count} vendors</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('regionSection').innerHTML = `
+    <div class="card">
+      <div class="card-title">Score by Region <span class="ctag" style="background:var(--blue-dim);color:var(--blue)">Live</span></div>
+      ${regHtml}
+    </div>
+    <div class="card">
+      <div class="card-title">Risk Tier Distribution</div>
+      <div class="donut-wrap" style="justify-content:center;margin-top:6px">
+        <div class="donut" style="background:${donutGrad}"></div>
+        <div class="dleg">
+          <div class="dleg-item"><div class="dleg-dot" style="background:var(--green)"></div>Excellent<div class="dleg-val">${excellent}</div></div>
+          <div class="dleg-item"><div class="dleg-dot" style="background:var(--blue)"></div>Stable<div class="dleg-val">${stable}</div></div>
+          <div class="dleg-item"><div class="dleg-dot" style="background:var(--amber)"></div>At-Risk<div class="dleg-val">${atRisk}</div></div>
+          <div class="dleg-item"><div class="dleg-dot" style="background:var(--red)"></div>Critical<div class="dleg-val">${critical}</div></div>
+        </div>
+      </div>
+      <div style="margin-top:14px;padding-top:10px;border-top:1px solid var(--border)">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:5px"><span>Yet to Audit</span><span style="color:var(--amber);font-family:var(--mono)">${ov.yet_to_audit}</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3)"><span>Active Alerts</span><span style="color:var(--red);font-family:var(--mono)">${ov.unacked_alerts}</span></div>
+      </div>
+    </div>`;
+
+  // Priority vendors
+  const vResp = await fetch(API+'/api/vendors?limit=8&offset=0').then(r=>r.json());
+  const priorityVendors = vResp.vendors.filter(v=>v.risk_tier==='CRITICAL'||v.risk_tier==='AT-RISK').slice(0,6);
+  if(priorityVendors.length===0){
+    document.getElementById('prioritySection').innerHTML = `<div class="card-title">Priority Vendors</div><div style="color:var(--green);font-size:13px;padding:12px 0">✓ No critical or at-risk vendors found</div>`;
+    return;
+  }
+  const rows = priorityVendors.map(v=>{
+    const sc = v.latest_audit_score||0;
+    const col = scoreColor(sc);
+    const tc = tierClass(v.risk_tier||'');
+    const alertCol = v.audit_alert==='OK'?'var(--green)':v.audit_alert?.includes('Pending')?'var(--amber)':'var(--text3)';
+    return `<tr>
+      <td style="color:var(--white);font-weight:500">${v.vendor_name}</td>
+      <td style="color:var(--text2)">${v.region||'—'}</td>
+      <td style="color:var(--text2)">${v.product_category||'—'}</td>
+      <td><div style="display:flex;align-items:center;gap:7px"><div class="sbar" style="width:55px"><div class="sf" style="width:${sc}%;background:${col}"></div></div><span style="font-family:var(--mono);font-size:11px;color:${col}">${sc}%</span></div></td>
+      <td><span class="tier ${tc}">${v.risk_tier||'—'}</span></td>
+      <td style="color:${alertCol};font-size:11.5px">${v.audit_alert||'—'}</td>
+      <td style="color:var(--text2);font-size:11.5px">${v.vendor_status||'—'}</td>
+      <td style="font-family:var(--mono);font-size:10.5px;color:var(--teal)">${v.ai_recommended_next_audit||'—'}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('prioritySection').innerHTML = `
+    <div class="card-title">Priority Vendors — Action Required <span class="ctag" style="background:var(--red-dim);color:var(--red)">Real Data</span></div>
+    <table class="tbl"><thead><tr><th>Vendor</th><th>Region</th><th>Category</th><th>Score</th><th>Tier</th><th>Alert</th><th>Status</th><th>AI Next Audit</th></tr></thead>
+    <tbody>${rows}</tbody></table>`;
+}
+
+// ── ANALYTICS ────────────────────────────────────────────────────────────────
+async function loadAnalytics(){
+  const [dist, cats, alertSt, trend, regions] = await Promise.all([
+    fetch(API+'/api/analytics/scores').then(r=>r.json()),
+    fetch(API+'/api/analytics/categories').then(r=>r.json()),
+    fetch(API+'/api/analytics/alerts-status').then(r=>r.json()),
+    fetch(API+'/api/analytics/trend').then(r=>r.json()),
+    fetch(API+'/api/analytics/regions').then(r=>r.json()),
+  ]);
+
+  const maxDist = Math.max(...dist.map(d=>d.count),1);
+  const distColors = ['var(--red)','var(--red)','var(--amber)','var(--blue)','var(--blue)','var(--green)','var(--green)'];
+  const distBars = dist.map((d,i)=>`<div class="bc"><div class="bf" style="height:${(d.count/maxDist*90)||2}%;background:${distColors[i]}"></div><div class="bl">${d.range}<br>${d.count}</div></div>`).join('');
+
+  const maxCat = Math.max(...cats.map(c=>c.avg_score||0),1);
+  const catBars = cats.map(c=>{
+    const sc=c.avg_score||0; const col=scoreColor(sc);
+    return `<div class="bc"><div class="bf" style="height:${(sc/100*90)||2}%;background:${col}"></div><div class="bl">${c.product_category||'—'}<br>${sc}%</div></div>`;
+  }).join('');
+
+  const maxAlert = Math.max(...alertSt.map(a=>a.count),1);
+  const alertColors = {'OK':'var(--green)','Pending / Due':'var(--amber)','Yet to Audit':'var(--text3)','Deactivated':'var(--red)'};
+  const alertBars = alertSt.map(a=>`<div style="display:flex;align-items:center;gap:9px;font-size:12px;margin-bottom:8px">
+    <span style="color:${alertColors[a.status]||'var(--text2)'};width:110px;font-family:var(--mono);font-size:11px">${a.status}</span>
+    <div class="rbar" style="flex:1"><div style="width:${(a.count/maxAlert*100)}%;height:100%;background:${alertColors[a.status]||'var(--text2)'};border-radius:3px"></div></div>
+    <span style="font-family:var(--mono);font-size:11px;color:${alertColors[a.status]||'var(--text2)'};min-width:28px">${a.count}</span>
+  </div>`).join('');
+
+  document.getElementById('analyticsTop').innerHTML = `
+    <div class="card"><div class="card-title">FTE Score Distribution</div>
+      <div style="display:flex;align-items:flex-end;gap:5px;height:90px">${distBars}</div>
+      <div style="margin-top:10px;font-size:11.5px;color:var(--text3)">Based on ${dist.reduce((a,b)=>a+b.count,0)} audited vendors</div>
+    </div>
+    <div class="card"><div class="card-title">Score by Product Category</div>
+      <div style="display:flex;align-items:flex-end;gap:5px;height:90px">${catBars}</div>
+    </div>`;
+
+  const regRows = regions.map(r=>`<tr>
+    <td style="color:var(--white)">${r.region}</td>
+    <td style="color:${scoreColor(r.avg_score||0)};font-family:var(--mono)">${r.avg_score||'—'}%</td>
+    <td>${r.vendor_count}</td>
+    <td style="color:var(--green)">${r.approved||0}</td>
+    <td style="color:var(--red)">${r.rejected||0}</td>
+    <td>${r.critical||0}</td>
+    <td>${r.at_risk||0}</td>
+  </tr>`).join('');
+
+  document.getElementById('analyticsBottom').innerHTML = `
+    <div class="card"><div class="card-title">Audit Alert Status</div>${alertBars}</div>
+    <div class="card"><div class="card-title">Region Breakdown</div>
+      <table class="tbl"><thead><tr><th>Region</th><th>Avg Score</th><th>Vendors</th><th>Approved</th><th>Rejected</th><th>Critical</th><th>At-Risk</th></tr></thead>
+      <tbody>${regRows}</tbody></table>
+    </div>`;
+
+  if(trend.length>0){
+    const maxTrend = Math.max(...trend.map(t=>t.avg_score),1);
+    const trendBars = trend.map(t=>{
+      const col = scoreColor(t.avg_score);
+      return `<div class="bc"><div class="bf" style="height:${(t.avg_score/100*90)||2}%;background:${col}"></div><div class="bl">${t.year}<br>${t.avg_score}%</div></div>`;
+    }).join('');
+    document.getElementById('trendSection').innerHTML = `<div class="card-title">Score Trend by Year</div><div style="display:flex;align-items:flex-end;gap:7px;height:90px;margin-top:6px">${trendBars}</div>`;
+  }
+}
+
+// ── VENDORS ───────────────────────────────────────────────────────────────────
+async function loadVendors(){
+  const params = new URLSearchParams({
+    limit: VENDOR_LIMIT, offset: vendorOffset,
+    ...(vendorFilters.search && {search:vendorFilters.search}),
+    ...(vendorFilters.region && {region:vendorFilters.region}),
+    ...(vendorFilters.tier && {tier:vendorFilters.tier}),
+    ...(vendorFilters.category && {category:vendorFilters.category}),
+  });
+  const data = await fetch(API+'/api/vendors?'+params).then(r=>r.json());
+
+  document.getElementById('vendorSub').textContent = `${data.total} vendors found`;
+  document.getElementById('vendorPagination').textContent = `Showing ${vendorOffset+1}–${Math.min(vendorOffset+VENDOR_LIMIT, data.total)} of ${data.total}`;
+
+  // Populate region filter
+  if(vendorOffset===0 && !vendorFilters.region){
+    const regResp = await fetch(API+'/api/analytics/regions').then(r=>r.json());
+    const regSel = document.querySelectorAll('.filter-sel')[0];
+    regSel.innerHTML = '<option value="">All Regions</option>' + regResp.map(r=>`<option>${r.region}</option>`).join('');
+  }
+
+  const rows = data.vendors.map(v=>{
+    const sc = v.latest_audit_score||0;
+    const col = scoreColor(sc);
+    const tc = tierClass(v.risk_tier||'UNSCORED');
+    const alertCol = v.audit_alert==='OK'?'var(--green)':v.audit_alert?.includes('Pending')?'var(--amber)':'var(--text3)';
+    return `<tr>
+      <td style="color:var(--white);font-weight:500">${v.vendor_name}</td>
+      <td style="font-family:var(--mono);font-size:11px;color:var(--text3)">${v.vendor_code||'—'}</td>
+      <td>${v.region||'—'}</td>
+      <td style="color:var(--text2)">${v.factory_location||'—'}</td>
+      <td style="color:var(--text2)">${v.product_category||'—'}</td>
+      <td>${sc?`<div style="display:flex;align-items:center;gap:6px"><div class="sbar" style="width:50px"><div class="sf" style="width:${sc}%;background:${col}"></div></div><span style="font-family:var(--mono);font-size:11px;color:${col}">${sc}%</span></div>`:'—'}</td>
+      <td><span class="tier ${tc}">${v.risk_tier||'UNSCORED'}</span></td>
+      <td style="color:${alertCol};font-size:11.5px">${v.audit_alert||'—'}</td>
+      <td style="color:var(--text2);font-size:11.5px">${v.vendor_status||'—'}</td>
+      <td style="font-family:var(--mono);font-size:10.5px;color:var(--teal)">${v.ai_recommended_next_audit||'—'}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('vtbody').innerHTML = rows || '<tr><td colspan="10" style="text-align:center;color:var(--text3);padding:20px">No vendors found</td></tr>';
+}
+
+let searchTimeout;
+function searchVendors(q){clearTimeout(searchTimeout);searchTimeout=setTimeout(()=>{vendorFilters.search=q;vendorOffset=0;loadVendors()},300)}
+function filterByRegion(v){vendorFilters.region=v;vendorOffset=0;loadVendors()}
+function filterByTier(v){vendorFilters.tier=v;vendorOffset=0;loadVendors()}
+function filterByCategory(v){vendorFilters.category=v;vendorOffset=0;loadVendors()}
+function prevPage(){if(vendorOffset>0){vendorOffset-=VENDOR_LIMIT;loadVendors()}}
+function nextPage(){vendorOffset+=VENDOR_LIMIT;loadVendors()}
+
+// ── ALERTS ───────────────────────────────────────────────────────────────────
+async function loadAlerts(){
+  const [active, resolved] = await Promise.all([
+    fetch(API+'/api/alerts?acknowledged=false').then(r=>r.json()),
+    fetch(API+'/api/alerts?acknowledged=true').then(r=>r.json()),
+  ]);
+  document.getElementById('alertsSub').textContent = `${active.length} unacknowledged · ${resolved.length} resolved`;
+  document.getElementById('alertBadge').textContent = active.length;
+
+  if(active.length===0){
+    document.getElementById('alertsList').innerHTML = `<div style="color:var(--green);font-size:13px;padding:16px 0">✓ No active alerts</div>`;
+  } else {
+    document.getElementById('alertsList').innerHTML = `
+      <div style="font-size:10px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Unacknowledged (${active.length})</div>
+      ${active.map(a=>`
+        <div class="alert-item unread" id="al${a.id}">
+          <div class="a-sev" style="background:${severityColor(a.severity)};${a.severity==='CRITICAL'?'animation:pulse 1.5s infinite':''}"></div>
+          <div class="a-body">
+            <div class="a-name">${a.severity==='CRITICAL'?'🔴':a.severity==='HIGH'?'🔴':'🟡'} ${a.alert_type} — ${a.vendor_name}</div>
+            <div class="a-detail">${a.message}</div>
+            <div class="a-meta">${a.region||''} · ${timeAgo(a.created_at)}</div>
+          </div>
+          <button class="a-ack" onclick="ackAlert(${a.id})">Ack</button>
+        </div>`).join('')}`;
+  }
+
+  document.getElementById('resolvedList').innerHTML = resolved.length===0
+    ? '<div style="color:var(--text3);font-size:12px">No resolved alerts</div>'
+    : `<div class="card" style="opacity:0.6">${resolved.slice(0,8).map(a=>`
+        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px">
+          <span>✅ ${a.alert_type} — ${a.vendor_name}</span>
+          <span style="font-family:var(--mono);color:var(--text3);font-size:10.5px">${timeAgo(a.acknowledged_at)}</span>
+        </div>`).join('')}</div>`;
+}
+
+async function ackAlert(id){
+  await fetch(API+'/api/alerts/'+id+'/acknowledge',{method:'POST'});
+  const el=document.getElementById('al'+id);
+  if(el){el.style.opacity='0.35';el.style.pointerEvents='none';}
+  const b=document.getElementById('alertBadge');
+  b.textContent=Math.max(0,parseInt(b.textContent)-1);
+}
+
+async function ackAll(){
+  await fetch(API+'/api/alerts/acknowledge-all',{method:'POST'});
+  loadAlerts();
+}
+
+// ── INGESTION HISTORY ─────────────────────────────────────────────────────────
+async function loadIngestHistory(){
+  const data = await fetch(API+'/api/ingestion-log').then(r=>r.json());
+  if(data.length===0){
+    document.getElementById('ingestHistory').innerHTML='<div style="color:var(--text3);font-size:12px;padding:12px 0">No uploads yet</div>';
+    return;
+  }
+  document.getElementById('ingestHistory').innerHTML=`<table class="tbl">
+    <thead><tr><th>File</th><th>Date</th><th>Rows</th><th>New</th><th>Updated</th><th>Errors</th><th>Status</th></tr></thead>
+    <tbody>${data.map(d=>`<tr>
+      <td style="font-family:var(--mono);font-size:11.5px;color:var(--blue)">${d.filename}</td>
+      <td style="font-family:var(--mono);font-size:11.5px">${new Date(d.created_at).toLocaleString()}</td>
+      <td>${d.total_rows}</td>
+      <td style="color:var(--green)">${d.new_audits}</td>
+      <td style="color:var(--amber)">${d.updated_audits}</td>
+      <td style="color:${d.errors>0?'var(--red)':'var(--text3)'}">${d.errors}</td>
+      <td><span style="color:${d.status==='SUCCESS'?'var(--green)':'var(--red)'};font-family:var(--mono);font-size:11.5px">${d.status==='SUCCESS'?'✓ SUCCESS':'✗ FAILED'}</span></td>
+    </tr>`).join('')}</tbody></table>`;
+}
+
+// ── UPLOAD ────────────────────────────────────────────────────────────────────
+function handleDrop(e){e.preventDefault();document.getElementById('uploadZone').classList.remove('drag-over');const f=e.dataTransfer.files[0];if(f)uploadFile(f)}
+function handleFileSelect(input){if(input.files[0])uploadFile(input.files[0])}
+
+async function uploadFile(file){
+  document.getElementById('uploadZone').style.display='none';
+  const prog=document.getElementById('uploadProgress');prog.style.display='block';
+  document.getElementById('upFilename').textContent=file.name;
+
+  const steps=[
+    {icon:'📥',label:'Receiving and archiving file'},
+    {icon:'🔍',label:'Parsing and validating rows'},
+    {icon:'🧹',label:'Normalizing regions, scores, dates'},
+    {icon:'🔁',label:'Deduplication check'},
+    {icon:'💾',label:'Writing to database'},
+    {icon:'⚡',label:'Recomputing risk scores and tiers'},
+    {icon:'🤖',label:'AI predicting next audit dates'},
+    {icon:'🔔',label:'Checking alert rules'},
+    {icon:'✅',label:'Completing batch'},
+  ];
+  document.getElementById('progSteps').innerHTML=steps.map((s,i)=>`
+    <div class="progress-step" id="ps${i}">
+      <div class="step-icon">${s.icon}</div>
+      <div class="step-label">${s.label}</div>
+      <div class="step-s pending" id="pss${i}">Waiting...</div>
+    </div>`).join('');
+
+  const log=document.getElementById('ingestLog');log.classList.add('active');
+
+  // Show steps progressing while upload happens
+  let stepIdx=0;
+  const stepInterval=setInterval(()=>{
+    if(stepIdx>0){document.getElementById('pss'+(stepIdx-1)).textContent='✓ Done';document.getElementById('pss'+(stepIdx-1)).className='step-s done';}
+    if(stepIdx<steps.length){document.getElementById('pss'+stepIdx).textContent='Running...';document.getElementById('pss'+stepIdx).className='step-s running';}
+    const msgs=['Archiving file...','Parsing Excel rows...','Cleaning data...','Checking duplicates...','Writing records...','Computing scores...','Calling Gemini AI...','Generating alerts...','Finalizing...'];
+    if(msgs[stepIdx]){const s=document.createElement('span');s.className='ll info';s.textContent='['+new Date().toLocaleTimeString()+'] '+msgs[stepIdx];log.appendChild(s);log.scrollTop=log.scrollHeight;}
+    stepIdx++;
+    if(stepIdx>=steps.length)clearInterval(stepInterval);
+  },1200);
+
+  // Actual upload
+  const formData=new FormData();formData.append('file',file);
+  const result=await fetch(API+'/api/upload',{method:'POST',body:formData}).then(r=>r.json());
+
+  clearInterval(stepInterval);
+  // Mark all done
+  steps.forEach((_,i)=>{document.getElementById('pss'+i).textContent='✓ Done';document.getElementById('pss'+i).className='step-s done';});
+
+  // Log result
+  result.error_details?.slice(0,5).forEach(e=>{const s=document.createElement('span');s.className='ll warn';s.textContent=e;log.appendChild(s);});
+  const fin=document.createElement('span');fin.className='ll success';fin.textContent=`[${new Date().toLocaleTimeString()}] Batch complete — ${result.status}`;log.appendChild(fin);
+
+  // Show results
+  document.getElementById('resultGrid').classList.add('active');
+  document.getElementById('rTotal').textContent=result.total_rows||0;
+  document.getElementById('rNew').textContent=result.new_audits||0;
+  document.getElementById('rUp').textContent=result.updated_audits||0;
+  document.getElementById('rSkip').textContent=result.skipped||0;
+
+  // Refresh overview
+  loadOverview();
+  loadIngestHistory();
+}
+
+// ── AI CHAT ────────────────────────────────────────────────────────────────────
+function askQ(q){document.getElementById('chatInput').value=q;sendChat()}
+
+async function sendChat(){
+  const input=document.getElementById('chatInput');
+  const msg=input.value.trim();if(!msg)return;
+  input.value='';
+  const msgs=document.getElementById('chatMsgs');
+
+  msgs.innerHTML+=`<div class="chat-msg fadein">
+    <div class="chat-av" style="background:var(--blue-dim);color:var(--blue)">👤</div>
+    <div class="chat-content"><div class="chat-rlbl">YOU</div><div class="chat-bubble user">${msg}</div></div>
+  </div>`;
+  msgs.scrollTop=msgs.scrollHeight;
+
+  const thinkId='think'+Date.now();
+  msgs.innerHTML+=`<div class="chat-msg fadein" id="${thinkId}">
+    <div class="chat-av" style="background:rgba(13,148,136,0.2);color:var(--teal)">AI</div>
+    <div class="chat-content"><div class="chat-rlbl">GEMINI</div><div class="chat-bubble ai" style="color:var(--text3)">Querying live database...</div></div>
+  </div>`;
+  msgs.scrollTop=msgs.scrollHeight;
+
+  chatHistory.push({role:'user',content:msg});
+
+  const resp=await fetch(API+'/api/chat',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({message:msg,history:chatHistory.slice(-6)})
+  }).then(r=>r.json());
+
+  document.getElementById(thinkId)?.remove();
+  const aiResp=resp.response||'Sorry, I could not process that request.';
+  chatHistory.push({role:'model',content:aiResp});
+
+  msgs.innerHTML+=`<div class="chat-msg fadein">
+    <div class="chat-av" style="background:rgba(13,148,136,0.2);color:var(--teal)">AI</div>
+    <div class="chat-content"><div class="chat-rlbl">GEMINI · LIVE DATA</div><div class="chat-bubble ai">${aiResp.replace(/\n/g,'<br>')}</div></div>
+  </div>`;
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+loadOverview();
+</script>
+</body>
+</html>
